@@ -2,9 +2,7 @@
 
 {% block content %}
 <div class="watch-layout">
-    <!-- Colonne Principale : Lecteur + Infos Vidéo -->
     <div class="watch-main">
-        <!-- Lecteur Réactif 16:9 -->
         <div class="player-wrapper">
             <video controls autoplay poster="{{ video.thumbnail }}">
                 <source src="{{ video.video_url }}" type="video/mp4">
@@ -12,61 +10,47 @@
             </video>
         </div>
 
-        <!-- Titre de la Vidéo -->
         <h1 class="watch-title">{{ video.title }}</h1>
 
-        <!-- En-tête de Chaîne et Actions -->
         <div class="watch-header">
             <div class="channel-details">
-                <img src="{{ video.channel.avatar }}" alt="{{ video.channel.name }}" class="channel-avatar">
                 <div class="channel-text">
                     <span class="channel-name">{{ video.channel.name }}</span>
-                    <span class="channel-subs">{{ video.channel.subscribers }} abonnés</span>
+                    <span class="channel-subs">Chaîne officielle</span>
                 </div>
-                <button class="btn-primary btn-subscribe">S'abonner</button>
-            </div>
-
-            <div class="watch-actions">
-                <button class="action-btn">👍 1.2 k</button>
-                <button class="action-btn">🌙 Ajouter à la nuit</button>
-                <button class="action-btn">🔗 Partager</button>
             </div>
         </div>
 
-        <!-- Boîte de Description et Métadonnées -->
         <div class="watch-description-box">
             <div class="video-stats">
-                <span><strong>{{ video.views }}</strong> vues</span>
+                <span>{{ video.views }} visionnages</span>
                 <span>•</span>
-                <span>{{ video.created_ago }}</span>
+                <span>{{ video.created_at.strftime('%d/%m/%Y') }}</span>
                 <span class="category-badge">{{ video.category }}</span>
             </div>
-            <p class="description-text">{{ video.description }}</p>
+            <p class="description-text">{{ video.description or 'Aucune description disponible.' }}</p>
         </div>
     </div>
 
-    <!-- Colonne Latérale : Recommandations -->
-    <aside class="watch-sidebar">
+    <!-- Suggestions de vidéos -->
+    <div class="watch-sidebar">
         <h3>Recommandations</h3>
         <div class="recommendations-list">
-            {% for item in recommendations %}
-            <a href="{{ url_for('watch', video_id=item.id) }}" class="side-video-card">
+            {% for rec in recommendations %}
+            <a href="{{ url_for('watch', video_id=rec.id) }}" class="side-video-card">
                 <div class="side-thumb-wrapper">
-                    <img src="{{ item.thumb }}" alt="{{ item.title }}">
-                    <span class="badge-category">{{ item.category }}</span>
+                    <img src="{{ rec.thumbnail }}" alt="{{ rec.title }}">
                 </div>
                 <div class="side-video-info">
-                    <h4>{{ item.title }}</h4>
-                    <span class="side-channel">{{ item.channel }}</span>
+                    <h4>{{ rec.title }}</h4>
+                    <span class="side-channel">{{ rec.channel.name }}</span>
                     <div class="side-meta">
-                        <span>{{ item.views }} vues</span>
-                        <span>•</span>
-                        <span>{{ item.created_ago }}</span>
+                        <span>{{ rec.views }} vues</span>
                     </div>
                 </div>
             </a>
             {% endfor %}
         </div>
-    </aside>
+    </div>
 </div>
 {% endblock %}

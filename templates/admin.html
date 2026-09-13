@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="admin-container">
+    <h2>Panneau d'administration</h2>
+    <p class="form-subtitle">Connecté en tant que <strong>{{ current_user.username }}</strong></p>
+
+    <div class="admin-grid">
+        <!-- Formulaire d'ajout de vidéo -->
+        <div class="admin-card">
+            <h3>Ajouter une vidéo</h3>
+            <form action="{{ url_for('admin_panel') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Titre de la vidéo *</label>
+                    <input type="text" name="title" required placeholder="Ex: Pluie forte sur une fenêtre">
+                </div>
+
+                <div class="form-group">
+                    <label>Catégorie *</label>
+                    <select name="category" required class="form-control">
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Source vidéo (Fichier local OU Lien Web)</label>
+                    <input type="file" name="video_file" accept="video/mp4,video/webm">
+                    <small>OU URL externe :</small>
+                    <input type="url" name="video_url" placeholder="https://domaine.com/video.mp4">
+                </div>
+
+                <div class="form-group">
+                    <label>Vignette / Miniature</label>
+                    <input type="file" name="thumb_file" accept="image/*">
+                    <small>OU URL d'image :</small>
+                    <input type="url" name="thumb_url" placeholder="https://images.unsplash.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" placeholder="Description de la vidéo..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary btn-full">Publier le contenu</button>
+            </form>
+        </div>
+
+        <!-- Liste des vidéos existantes -->
+        <div class="admin-card">
+            <h3>Vidéos sur la plateforme ({{ videos|length }})</h3>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Miniature</th>
+                            <th>Titre</th>
+                            <th>Catégorie</th>
+                            <th>Vues</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for video in videos %}
+                        <tr>
+                            <td><img src="{{ video.thumbnail }}" class="admin-thumb" alt="thumb"></td>
+                            <td><strong>{{ video.title }}</strong></td>
+                            <td><span class="badge-category">{{ video.category }}</span></td>
+                            <td>{{ video.views }}</td>
+                            <td>
+                                <form action="{{ url_for('delete_video', video_id=video.id) }}" method="POST" onsubmit="return confirm('Supprimer cette vidéo ?');">
+                                    <button type="submit" class="btn-danger-small">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5">Aucune vidéo en base de données.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
