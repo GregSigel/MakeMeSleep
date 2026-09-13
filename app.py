@@ -6,6 +6,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import base64
+import re
 
 load_dotenv()
 
@@ -94,6 +96,39 @@ def init_admin_account():
             user.password = hashed_pwd
             user.is_admin = True
             db.session.commit()
+
+def save_b64_image(b64_str):
+    if not b64_str or not b64_str.startswith('data:image'):
+        return None
+    try:
+        header, encoded = b64_str.split(',', 1)
+        data = base64.b64decode(encoded)
+        filename = f"thumb_auto_{int(datetime.now().timestamp())}.jpg"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        with open(filepath, 'wb') as f:
+            f.write(data)
+        return url_for('static', filename=f'uploads/{filename}')
+    except Exception:
+        return None
+
+def process_youtube_url(url):
+    """
+    Extrait l'ID de la vidéo YouTube et retourne l'URL d'intégration Embed et la miniature.
+    """
+    if not url:
+        return None, None
+        
+    # Motif RegEx pour capturer l'ID YouTube (shorts, watch, youtu.be)
+    youtube_regex = r'(?:youtube\.com\/(?:shorts\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+    match = re.search(youtube_regex, url)
+    
+    if match:
+        video_id = match.group(1)
+        embed_url = f"https://www.youtube.com/embed/{video_id}"
+        thumbnail_url = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+        return embed_url, thumbnail_url
+        
+    return url, None
 
 # --- ROUTES ---
 
@@ -319,6 +354,67 @@ def delete_account():
     db.session.commit()
     flash("Votre compte et votre chaîne ont été supprimés.", "info")
     return redirect(url_for('index'))
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload():
+    # Sécurité : s'assurer que l'utilisateur a une chaîne d'utilisateurs
+    if not current_user.channel:
+        new_channel = Channel(name=f"Chaîne de {current_user.username}", user_id=current_user.id)
+        db.session.add(new_channel)
+        db.session.commit()
+
+    categories = ["ASMR", "Bruits Blancs", "Histoires", "Méditation", "Sommeil"]
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        category = request.form.get('category')
+        description = request.form.get('description', '').strip()
+
+        video_file = request.files.get('video_file')
+        video_url_input = request.form.get('video_url', '').strip()
+
+        final_video_url = save_file_or_get_url(video_file, video_url_input)
+        
+        # Traitement YouTube si c'est un lien externe
+        yt_embed_url, yt_thumb_url = process_youtube_url(final_video_url)
+        if yt_embed_url:
+            final_video_url = yt_embed_url
+
+        # Traitement miniature
+        thumb_file = request.files.get('thumb_file')
+        thumb_url_input = request.form.get('thumb_url')
+        thumb_b64 = request.form.get('generated_thumb')
+
+        final_thumb_url = save_file_or_get_url(thumb_file, thumb_url_input)
+        
+        if not final_thumb_url and yt_thumb_url:
+            # Utilise automatiquement la miniature YouTube si disponible
+            final_thumb_url = yt_thumb_url
+        elif not final_thumb_url and thumb_b64:
+            final_thumb_url = save_b64_image(thumb_b64)
+
+        if not final_thumb_url:
+            final_thumb_url = "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=500&q=80"
+
+        if not title or not category or not final_video_url:
+            flash("Veuillez remplir le titre, la catégorie et fournir une vidéo.", "error")
+        else:
+            new_video = Video(
+                title=title,
+                category=category,
+                description=description,
+                video_url=final_video_url,
+                thumbnail=final_thumb_url,
+                channel_id=current_user.channel.id
+            )
+            db.session.add(new_video)
+            db.session.commit()
+            flash("Vidéo publiée avec succès !", "success")
+            return redirect(url_for('watch', video_id=new_video.id))
+
+    return render_template('upload.html', categories=categories)
 
 if __name__ == '__main__':
     with app.app_context():

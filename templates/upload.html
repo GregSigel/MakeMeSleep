@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Publier un contenu - MakeMeDream{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 600px;">
+    <h2>Publier une vidéo</h2>
+    <p class="form-subtitle">Partage ton contenu avec la communauté</p>
+
+    <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" id="upload-form">
+        <div class="form-group">
+            <label for="title">Titre de la vidéo *</label>
+            <input type="text" id="title" name="title" required placeholder="Ex : 1h de pluie apaisante sur la fenêtre">
+        </div>
+
+        <div class="form-group">
+            <label for="category">Catégorie *</label>
+            <select name="category" id="category" class="form-control" required>
+                {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="video_file">Fichier vidéo (MP4, WebM)</label>
+            <input type="file" id="video_file" name="video_file" accept="video/mp4,video/webm">
+            <small>Ou insère une URL directe ci-dessous :</small>
+            <input type="url" name="video_url" placeholder="https://..." style="margin-top: 6px;">
+        </div>
+
+        <!-- Aperçu et stockage de la miniature auto-générée -->
+        <input type="hidden" name="generated_thumb" id="generated_thumb">
+
+        <div class="form-group">
+            <label>Aperçu de la vignette automatique</label>
+            <div id="thumb-preview-box" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #334155;">
+                <span id="preview-placeholder" style="color: var(--text-muted); font-size: 0.85rem;">Sélectionne un fichier vidéo pour générer la vignette</span>
+                <img id="thumb_preview" src="" alt="Aperçu" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="thumb_file">Remplacer la vignette (optionnel)</label>
+            <input type="file" id="thumb_file" name="thumb_file" accept="image/*">
+            <small>Ou URL personnalisée :</small>
+            <input type="url" name="thumb_url" placeholder="https://..." style="margin-top: 6px;">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="Donne plus de détails sur le contenu..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full">Publier la vidéo</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('video_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file || !file.type.startsWith('video/')) return;
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = function() {
+        // Capture à 1 seconde de lecture (ou au milieu si la vidéo est plus courte)
+        video.currentTime = Math.min(1.0, video.duration / 2);
+    };
+
+    video.onseeked = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 360;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        // Mise à jour du champ caché et de l'affichage
+        document.getElementById('generated_thumb').value = dataUrl;
+        
+        const img = document.getElementById('thumb_preview');
+        img.src = dataUrl;
+        img.style.display = 'block';
+        document.getElementById('preview-placeholder').style.display = 'none';
+
+        URL.revokeObjectURL(video.src);
+    };
+});
+</script>
+{% endblock %}
