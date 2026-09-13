@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier la vidéo - MakeMeDream{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 600px;">
+    <h2>Modifier la vidéo</h2>
+    <p class="form-subtitle">Mets à jour les informations de ton contenu</p>
+
+    <form action="{{ url_for('edit_video', video_id=video.id) }}" method="POST" enctype="multipart/form-data" id="edit-form">
+        <div class="form-group">
+            <label for="title">Titre de la vidéo *</label>
+            <input type="text" id="title" name="title" value="{{ video.title }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Catégorie *</label>
+            <select name="category" id="category" class="form-control" required>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if cat == video.category %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="video_file">Remplacer le fichier vidéo ou lien (optionnel)</label>
+            <input type="file" id="video_file" name="video_file" accept="video/mp4,video/webm">
+            <small>Ou nouvelle URL (YouTube/Directe) :</small>
+            <input type="url" name="video_url" value="{{ video.video_url }}" style="margin-top: 6px;">
+        </div>
+
+        <input type="hidden" name="generated_thumb" id="generated_thumb">
+
+        <div class="form-group">
+            <label>Miniature actuelle</label>
+            <div id="thumb-preview-box" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid #334155;">
+                <img id="thumb_preview" src="{{ video.thumbnail }}" alt="Miniature" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="thumb_file">Remplacer la miniature (optionnel)</label>
+            <input type="file" id="thumb_file" name="thumb_file" accept="image/*">
+            <small>Ou URL personnalisée :</small>
+            <input type="url" name="thumb_url" placeholder="https://..." style="margin-top: 6px;">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4">{{ video.description or '' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button type="submit" class="btn-primary" style="flex: 1;">Enregistrer les modifications</button>
+            <a href="{{ url_for('watch', video_id=video.id) }}" class="btn-secondary" style="text-align: center; line-height: 2.2;">Annuler</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('video_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file || !file.type.startsWith('video/')) return;
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = function() {
+        video.currentTime = Math.min(1.0, video.duration / 2);
+    };
+
+    video.onseeked = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 360;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        document.getElementById('generated_thumb').value = dataUrl;
+        const img = document.getElementById('thumb_preview');
+        img.src = dataUrl;
+
+        URL.revokeObjectURL(video.src);
+    };
+});
+</script>
+{% endblock %}

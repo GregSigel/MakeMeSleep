@@ -42,6 +42,31 @@
     </section>
     {% endif %}
 
+    <h3>Mes vidéos publiées</h3>
+    {% if user_videos %}
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+            {% for video in user_videos %}
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-color); padding: 10px 14px; border-radius: 8px; border: 1px solid #334155;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="{{ video.thumbnail }}" alt="" style="width: 70px; height: 40px; object-fit: cover; border-radius: 4px;">
+                        <div>
+                            <a href="{{ url_for('watch', video_id=video.id) }}" style="color: var(--text-main); font-weight: 500; text-decoration: none;">{{ video.title }}</a>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">{{ video.views }} vues • Catégorie : {{ video.category }}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('edit_video', video_id=video.id) }}" class="btn-secondary" style="padding: 4px 12px; font-size: 0.8rem;">Modifier</a>
+                        <form action="{{ url_for('delete_user_video', video_id=video.id) }}" method="POST" onsubmit="return confirm('Supprimer définitivement ?');">
+                            <button type="submit" class="btn-danger-small">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 10px;">Tu n'as pas encore publié de vidéo.</p>
+    {% endif %}
+
     <!-- Zone de danger -->
     <section class="profile-card danger-zone">
         <h3>⚠️ Zone de danger</h3>
