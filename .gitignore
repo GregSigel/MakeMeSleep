@@ -1,0 +1,32 @@
+# Environnements virtuels
+.venv/
+venv/
+ENV/
+env/
+
+# Caches Python et bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Variables d'environnement et secrets (API keys, SECRET_KEY)
+.env
+.env.local
+.env.*.local
+
+# Bases de données locales SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Fichiers système et éditeurs / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

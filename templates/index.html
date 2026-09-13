@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="category-tags">
+    <div class="tag active">Tout</div>
+    <div class="tag">ASMR</div>
+    <div class="tag">Bruits Blancs</div>
+    <div class="tag">Histoires</div>
+    <div class="tag">Méditation</div>
+</div>
+
+<div class="video-grid">
+    {% for video in videos %}
+    <a href="{{ url_for('watch', video_id=video.id) }}" class="video-card-link">
+        <div class="video-card">
+            <div class="thumb-wrapper">
+                <img src="{{ video.thumb }}" alt="{{ video.title }}" class="video-thumb">
+                <span class="badge-category">{{ video.category }}</span>
+            </div>
+            <div class="video-info">
+                <h3>{{ video.title }}</h3>
+                <p class="video-channel-name">{{ video.channel }}</p>
+                <div class="video-meta">
+                    <span>{{ video.views }} vues</span>
+                    <span>•</span>
+                    <span>Il y a 2 jours</span>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

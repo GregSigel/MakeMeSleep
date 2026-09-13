@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Rejoindre MakeMeDream</h2>
+    <p class="form-subtitle">Créez votre compte et votre chaîne en quelques secondes.</p>
+
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur *</label>
+            <input type="text" id="username" name="username" placeholder="ex: Dreamer99" required>
+        </div>
+
+        <div class="form-group">
+            <label for="channel_name">Nom de votre chaîne (optionnel)</label>
+            <input type="text" id="channel_name" name="channel_name" placeholder="ex: Ma Bulle Apaisante">
+            <small>Par défaut : "Chaîne de [votre pseudo]"</small>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mot de passe *</label>
+            <input type="password" id="password" name="password" placeholder="Au moins 6 caractères" required>
+        </div>
+
+        <div class="form-group">
+            <label for="confirm_password">Confirmer le mot de passe *</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Répétez le mot de passe" required>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full">Créer mon espace rêve</button>
+    </form>
+
+    <div class="form-footer">
+        <p>Déjà inscrit ? <a href="{{ url_for('login') }}">Se connecter</a></p>
+    </div>
+</div>
+{% endblock %}
