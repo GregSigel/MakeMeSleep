@@ -296,7 +296,10 @@ def delete_video(video_id):
 @app.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html')
+    user_videos = []
+    if current_user.channel:
+        user_videos = Video.query.filter_by(channel_id=current_user.channel.id).order_by(Video.created_at.desc()).all()
+    return render_template('profile.html', user_videos=user_videos)
 
 @app.route('/profile/update-channel', methods=['POST'])
 @login_required
@@ -415,6 +418,90 @@ def upload():
             return redirect(url_for('watch', video_id=new_video.id))
 
     return render_template('upload.html', categories=categories)
+
+@app.route('/video/<int:video_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_video(video_id):
+    video = Video.query.get_or_404(video_id)
+    
+    # Vérification de propriété (seul l'auteur ou l'admin peut modifier)
+    if video.channel.user_id != current_user.id and not current_user.is_admin:
+        flash("Vous n'avez pas l'autorisation de modifier cette vidéo.", "error")
+        return redirect(url_for('watch', video_id=video.id))
+
+    categories = ["ASMR", "Bruits Blancs", "Histoires", "Méditation", "Sommeil"]
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        category = request.form.get('category')
+        description = request.form.get('description', '').strip()
+
+        if not title or not category:
+            flash("Le titre et la catégorie sont obligatoires.", "error")
+            return render_template('edit_video.html', video=video, categories=categories)
+
+        # Mise à jour des champs de base
+        video.title = title
+        video.category = category
+        video.description = description
+
+        # Remplacement optionnel de la vidéo (fichier ou URL)
+        video_file = request.files.get('video_file')
+        video_url_input = request.form.get('video_url', '').strip()
+        if video_file or video_url_input:
+            new_video_url = save_file_or_get_url(video_file, video_url_input)
+            if new_video_url:
+                yt_embed_url, yt_thumb_url = process_youtube_url(new_video_url)
+                video.video_url = yt_embed_url if yt_embed_url else new_video_url
+                if yt_thumb_url and not request.files.get('thumb_file') and not request.form.get('thumb_url'):
+                    video.thumbnail = yt_thumb_url
+
+        # Remplacement optionnel de la miniature
+        thumb_file = request.files.get('thumb_file')
+        thumb_url_input = request.form.get('thumb_url', '').strip()
+        thumb_b64 = request.form.get('generated_thumb')
+
+        new_thumb = save_file_or_get_url(thumb_file, thumb_url_input)
+        if new_thumb:
+            video.thumbnail = new_thumb
+        elif thumb_b64:
+            saved_b64 = save_b64_image(thumb_b64)
+            if saved_b64:
+                video.thumbnail = saved_b64
+
+        db.session.commit()
+        flash("Vidéo mise à jour avec succès !", "success")
+        return redirect(url_for('watch', video_id=video.id))
+
+    return render_template('edit_video.html', video=video, categories=categories)
+
+
+@app.route('/video/<int:video_id>/delete', methods=['POST'])
+@login_required
+def delete_user_video(video_id):
+    video = Video.query.get_or_404(video_id)
+
+    # Vérification de propriété
+    if video.channel.user_id != current_user.id and not current_user.is_admin:
+        flash("Vous n'avez pas l'autorisation de supprimer cette vidéo.", "error")
+        return redirect(url_for('watch', video_id=video.id))
+
+    # Suppression du fichier vidéo local du serveur s'il existe
+    if video.video_url.startswith('/static/uploads/'):
+        local_path = os.path.join(app.root_path, video.video_url.lstrip('/'))
+        if os.path.exists(local_path):
+            os.remove(local_path)
+
+    # Suppression de la miniature locale du serveur si elle existe
+    if video.thumbnail.startswith('/static/uploads/'):
+        local_thumb = os.path.join(app.root_path, video.thumbnail.lstrip('/'))
+        if os.path.exists(local_thumb):
+            os.remove(local_thumb)
+
+    db.session.delete(video)
+    db.session.commit()
+    flash("Vidéo supprimée avec succès.", "info")
+    return redirect(url_for('profile'))
 
 if __name__ == '__main__':
     with app.app_context():
