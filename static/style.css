@@ -497,3 +497,133 @@ header {
         height: 90px;
     }
 }
+
+/* --- BARRE DE CATÉGORIES (TAGS) --- */
+.category-tags {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    scrollbar-width: none;
+}
+
+.category-tags::-webkit-scrollbar {
+    display: none;
+}
+
+.tag {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid #334155;
+    transition: var(--transition);
+}
+
+.tag:hover {
+    background-color: #334155;
+}
+
+.tag.active {
+    background-color: var(--text-main);
+    color: var(--bg-color);
+    border-color: var(--text-main);
+}
+
+/* --- GRILLE DE VIDÉOS D'ACCUEIL --- */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.video-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.video-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #334155;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.thumb-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.video-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.video-card:hover .video-thumb {
+    transform: scale(1.03);
+}
+
+.badge-category {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(15, 23, 42, 0.85);
+    color: var(--text-main);
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+}
+
+.video-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+}
+
+.video-info h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-channel-name {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.video-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
