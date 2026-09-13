@@ -59,13 +59,32 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    videos = [
+    # Catégorie sélectionnée ('Tout' par défaut)
+    selected_category = request.args.get('category', 'Tout')
+    
+    # Liste globale des catégories disponibles
+    categories = ["Tout", "ASMR", "Bruits Blancs", "Histoires", "Méditation", "Sommeil"]
+    
+    # Données des vidéos (remplace par Video.query.all() avec SQLAlchemy plus tard)
+    all_videos = [
         {"id": 1, "title": "Bruits de pluie et tonnerre lointain", "thumb": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=500&q=80", "category": "Sommeil", "views": "12k", "channel": "Serein&Co"},
         {"id": 2, "title": "ASMR Chuchotements Inaudibles", "thumb": "https://images.unsplash.com/photo-1516750105099-4b8a83e217ee?w=500&q=80", "category": "ASMR", "views": "45k", "channel": "DreamWhispers"},
-        {"id": 3, "title": "Lecture d'un conte au coin du feu", "thumb": "https://images.unsplash.com/photo-1478147427282-58a87a120781?w=500&q=80", "category": "Story", "views": "8k", "channel": "NuitsÉtoilées"},
+        {"id": 3, "title": "Lecture d'un conte au coin du feu", "thumb": "https://images.unsplash.com/photo-1478147427282-58a87a120781?w=500&q=80", "category": "Histoires", "views": "8k", "channel": "NuitsÉtoilées"},
         {"id": 4, "title": "Tapping sur bois et verre", "thumb": "https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=500&q=80", "category": "ASMR", "views": "23k", "channel": "Relax Lab"}
     ]
-    return render_template('index.html', videos=videos)
+    
+    # Filtrage
+    if selected_category != 'Tout':
+        filtered_videos = [v for v in all_videos if v['category'].lower() == selected_category.lower()]
+    else:
+        filtered_videos = all_videos
+
+    return render_template(
+        'index.html', 
+        videos=filtered_videos, 
+        categories=categories, 
+        selected_category=selected_category
+    )
 
 @app.route('/search')
 def search():

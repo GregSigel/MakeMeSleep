@@ -1,14 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!-- Barre de catégories cliquables -->
 <div class="category-tags">
-    <div class="tag active">Tout</div>
-    <div class="tag">ASMR</div>
-    <div class="tag">Bruits Blancs</div>
-    <div class="tag">Histoires</div>
-    <div class="tag">Méditation</div>
+    {% for cat in categories %}
+    <a href="{{ url_for('index', category=cat) }}" 
+       class="tag {% if cat == selected_category %}active{% endif %}">
+        {{ cat }}
+    </a>
+    {% endfor %}
 </div>
 
+<!-- Grille de vidéos -->
 <div class="video-grid">
     {% for video in videos %}
     <a href="{{ url_for('watch', video_id=video.id) }}" class="video-card-link">
@@ -28,6 +31,8 @@
             </div>
         </div>
     </a>
+    {% else %}
+    <p class="no-results">Aucune vidéo disponible pour la catégorie « {{ selected_category }} ».</p>
     {% endfor %}
 </div>
 {% endblock %}

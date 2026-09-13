@@ -523,6 +523,15 @@ header {
     white-space: nowrap;
     border: 1px solid #334155;
     transition: var(--transition);
+    text-decoration: none; /* Indispensable pour les liens <a> */
+    display: inline-block;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    padding: 40px 0;
+    text-align: center;
 }
 
 .tag:hover {
